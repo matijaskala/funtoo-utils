@@ -54,9 +54,6 @@ funtoo_original_packages = [
 	"sys-kernel/sysrescue-std-sources",
 	"sys-kernel/ubuntu-server",
 	"sys-kernel/ubuntu-sources",
-	"www-client/surf",
-	"www-servers/nginx",
-	"www-servers/thin",
 ]
 
 steps = [
