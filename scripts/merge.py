@@ -14,7 +14,6 @@ funtoo_original_overlay = Tree("funtoo-overlay", branch, "git://github.com/funto
 foo_overlay = Tree("foo-overlay", "master", "https://github.com/slashbeast/foo-overlay.git", pull=True)
 bar_overlay = Tree("bar-overlay", "master", "git://github.com/adessemond/bar-overlay.git", pull=True)
 squeezebox_overlay = Tree("squeezebox", "master", "git://git.overlays.gentoo.org/user/squeezebox.git", pull=True)
-progress_overlay = SvnTree("progress", "https://gentoo-progress.googlecode.com/svn/overlays/progress")
 sabayon_for_gentoo = Tree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
 mate_overlay = Tree("mate", "master", "git://github.com/Sabayon/mate-overlay.git", pull=True)
 
@@ -87,15 +86,6 @@ steps = [
 		"profiles/package.use.mask":"profiles/funtoo/1.0/linux-gnu/mix-ins/mate/package.use.mask"
 	}),
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader"], replace=True),
-	SyncDir(progress_overlay.root, "eclass"),
-	SyncDir(progress_overlay.root, "profiles/unpack_dependencies"),
-	SyncFiles(progress_overlay.root, {
-		"profiles/use.aliases":"profiles/use.aliases/progress",
-		"profiles/use.mask":"profiles/use.mask/progress"
-	}),
-	#InsertEbuilds(progress_overlay, select="all", skip=None, replace=True, merge=["dev-java/guava", "dev-lang/python", "dev-python/psycopg", "dev-python/pysqlite", "dev-python/python-docs", "dev-python/simpletal", "dev-python/wxpython", "dev-util/gdbus-codegen", "x11-libs/vte"]),
-	#MergeUpdates(progress_overlay.root),
-	#AutoGlobMask("dev-lang/python", "python*_pre*"),
 	ApplyPatchSeries("%s/partylinux/patches" % party_overlay.root ),
 	Minify(),
 	GenCache(),
