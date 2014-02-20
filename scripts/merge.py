@@ -18,9 +18,6 @@ sabayon_for_gentoo = Tree("sabayon-for-gentoo", "master", "git://github.com/Saba
 mate_overlay = Tree("mate", "master", "git://github.com/Sabayon/mate-overlay.git", pull=True)
 
 funtoo_original_packages = [
-	"app-admin/salt",
-	"app-backup/rsnapshot",
-	"app-crypt/gnupg",
 	"app-dicts/dictd-moby-thesaurus",
 	"app-editors/sublime-text",
 	"app-portage/eix",
