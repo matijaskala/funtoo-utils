@@ -15,7 +15,6 @@ foo_overlay = Tree("foo-overlay", "master", "https://github.com/slashbeast/foo-o
 bar_overlay = Tree("bar-overlay", "master", "git://github.com/adessemond/bar-overlay.git", pull=True)
 squeezebox_overlay = Tree("squeezebox", "master", "git://git.overlays.gentoo.org/user/squeezebox.git", pull=True)
 sabayon_for_gentoo = Tree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
-mate_overlay = Tree("mate", "master", "git://github.com/Sabayon/mate-overlay.git", pull=True)
 
 funtoo_original_packages = [
 	"app-dicts/dictd-moby-thesaurus",
@@ -70,15 +69,8 @@ steps = [
 	InsertEbuilds(party_overlay, select="all", skip=funtoo_original_packages, replace=True, merge=["sys-apps/systemd", "sys-devel/gcc"]),
 	InsertEbuilds(foo_overlay, select="all", skip=["media-sound/deadbeef", "sys-fs/mdev-bb", "sys-fs/mdev-like-a-boss", "media-video/handbrake"], replace=["app-shells/rssh","net-misc/unison"]),
 	InsertEbuilds(bar_overlay, select="all", skip=["app-emulation/qemu"], replace=False),
-	InsertEbuilds(mate_overlay, select="all", skip=None, replace=False),
 	InsertEbuilds(squeezebox_overlay, select="all", skip=None, replace=False),
 	InsertEbuilds(funtoo_original_overlay, select=funtoo_original_packages, skip=None, replace=True),
-	SyncDir(mate_overlay.root, "eclass"),
-	SyncDir(mate_overlay.root, "sets"),
-	SyncFiles(mate_overlay.root, {
-		"profiles/package.mask":"profiles/funtoo/1.0/linux-gnu/mix-ins/mate/package.mask",
-		"profiles/package.use.mask":"profiles/funtoo/1.0/linux-gnu/mix-ins/mate/package.use.mask"
-	}),
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader"], replace=True),
 	ApplyPatchSeries("%s/partylinux/patches" % party_overlay.root ),
 	Minify(),
