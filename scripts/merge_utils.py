@@ -269,9 +269,9 @@ class CvsTree(object):
 		if not os.path.exists(base):
 			os.makedirs(base)
 		if os.path.exists(self.root):
-			runShell("(cd %s; cvs --no-verify update -dP)" % self.root)
+			runShell("(cd %s; cvs update -dP)" % self.root)
 		else:
-			runShell("(cd %s; cvs --no-verify -d %s co %s)" % (base, self.url, self.name))
+			runShell("(cd %s; cvs -d %s co %s)" % (base, self.url, self.name))
 
 class UnifiedTree(Tree):
 	def __init__(self,root,steps):
