@@ -53,7 +53,6 @@ steps = [
 	ProfileDepFix(),
 	SyncDir(party_overlay.root,"licenses"),
 	SyncDir(party_overlay.root,"eclass"),
-	SyncDir(party_overlay.root,"metadata"),
 	SyncFiles(funtoo_utils.root, {
 		"data/layout.conf":"metadata/layout.conf",
 	}),
