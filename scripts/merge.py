@@ -19,10 +19,7 @@ sabayon_for_gentoo = Tree("sabayon-for-gentoo", "master", "git://github.com/Saba
 funtoo_original_packages = [
 	"app-dicts/dictd-moby-thesaurus",
 	"app-editors/sublime-text",
-	"app-portage/eix",
 	"app-portage/genlop",
-	"app-vim/gentoo-syntax",
-	"dev-lang/perl",
 	"mail-mta/postfix",
 	"sys-boot/boot-update",
 	"sys-cluster/glance",
