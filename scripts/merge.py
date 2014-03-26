@@ -54,7 +54,8 @@ steps = [
 	ProfileDepFix(),
 	SyncDir(party_overlay.root,"licenses"),
 	SyncDir(party_overlay.root,"eclass"),
-	SyncDir(gentoo_news.root,destdir="metadata/news"),
+	SyncDir(gentoo_news.root,"2013","metadata/news"),
+	SyncDir(gentoo_news.root,"2014","metadata/news"),
 	SyncFiles(funtoo_utils.root, {
 		"data/layout.conf":"metadata/layout.conf",
 	}),
