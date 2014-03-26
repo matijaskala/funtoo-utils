@@ -58,6 +58,7 @@ steps = [
 	SyncDir(gentoo_news.root,"2014","metadata/news"),
 	SyncFiles(funtoo_utils.root, {
 		"data/layout.conf":"metadata/layout.conf",
+		"data/gitignore":".gitignore",
 	}),
 	SyncFiles(gentoo_src.root, {
 		"profiles/arch/amd64/use.mask":"profiles/funtoo/1.0/linux-gnu/arch/x86-64bit/use.mask/01-gentoo",
