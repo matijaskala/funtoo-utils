@@ -8,6 +8,7 @@ if not os.path.exists("/usr/bin/svn"):
 	sys.exit(1)
 
 gentoo_src = CvsTree("gentoo-x86",":pserver:anonymous@anoncvs.gentoo.org:/var/cvsroot")
+gentoo_news = Tree("gentoo-news", "master", "git://anongit.gentoo.org/proj/gentoo-news.git", pull=True)
 funtoo_utils = DeadTree("funtoo-utils",os.path.abspath(".."))
 party_overlay = Tree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
 funtoo_original_overlay = Tree("funtoo-overlay", branch, "git://github.com/funtoo/funtoo-overlay.git", pull=True)
@@ -53,7 +54,7 @@ steps = [
 	ProfileDepFix(),
 	SyncDir(party_overlay.root,"licenses"),
 	SyncDir(party_overlay.root,"eclass"),
-	SyncDir(gentoo_src.root,"metadata/news"),
+	SyncDir(gentoo_news.root,destdir="metadata/news"),
 	SyncFiles(funtoo_utils.root, {
 		"data/layout.conf":"metadata/layout.conf",
 	}),
