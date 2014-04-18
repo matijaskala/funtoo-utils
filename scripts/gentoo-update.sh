@@ -22,7 +22,11 @@ rsync --recursive --links --safe-links --perms --times --compress --force --whol
 # the rsync command wiped our critical .gitignore file, so recreate it.
 echo "distfiles/*" > .gitignore || exit 2
 echo "packages/*" >> .gitignore || exit 3
+echo >> metadata/layout.conf || exit 1
+echo "# Thin manifests" >> metadata/layout.conf || exit 1
+echo "thin-manifests = true" >> metadata/layout.conf || exit 1
+echo "sign-manifests = false" >> metadata/layout.conf || exit 1
 find -iname Manifest -exec sed -n -i -e "/DIST/p" {} \;
-git add . || exit 1
+git add --all || exit 1
 git commit -m "updates by Skala" || exit 1
 git push || exit 1
