@@ -8,7 +8,9 @@ import glob
 
 debug = False
 
-mergeLog = open("/var/tmp/merge.log","w")
+home = os.path.expanduser("~/.funtoo/")
+
+mergeLog = open(home+"merge.log","w")
 
 def headSHA1(tree):
 	head = None
@@ -199,7 +201,7 @@ class Tree(object):
 			base = os.path.basename(self.trylocal)
 			self.root = trylocal
 		else:
-			base = "/var/git/source-trees"
+			base = home+"git/source-trees"
 			self.root = "%s/%s" % ( base, self.name )
 
 		if not os.path.exists(base):
@@ -246,7 +248,7 @@ class SvnTree(object):
 			base = os.path.basename(self.trylocal)
 			self.root = trylocal
 		else:
-			base = "/var/svn/source-trees"
+			base = home+"svn/source-trees"
 			self.root = "%s/%s" % (base, self.name)
 		if not os.path.exists(base):
 			os.makedirs(base)
@@ -264,7 +266,7 @@ class CvsTree(object):
 			base = os.path.basename(self.trylocal)
 			self.root = trylocal
 		else:
-			base = "/var/cvs/source-trees"
+			base = home+"cvs/source-trees"
 			self.root = "%s/%s" % (base, self.name)
 		if not os.path.exists(base):
 			os.makedirs(base)
