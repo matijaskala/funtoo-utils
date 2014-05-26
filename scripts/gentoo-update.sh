@@ -2,8 +2,8 @@
 
 src=rsync://rsync.at.gentoo.org/gentoo-portage/
 
-github_path=https://github.com/matijaskala
-dir=/var/git/source-trees
+github_path=git@github.com:matijaskala
+dir=~/.funtoo/git/source-trees
 name=gentoo-x86
 if [ ! -e $dir/$name ]; then
 	(
@@ -16,9 +16,6 @@ cd $dir/$name || exit 1
 
 # Now, use rsync to write new changes directly on top of our working files. New files will be added, deprecated files will be deleted.
 rsync --recursive --links --safe-links --perms --times --compress --force --whole-file --delete --timeout=180 --exclude=/.git --exclude=/metadata/cache/ --exclude=/distfiles --exclude=/local --exclude=/packages $src $dir/$name || exit 1
-# We want to make extra-sure that we don't grab any metadata, since we don't keep metadata for the gentoo.org tree (space reasons)
-[ -e metadata/cache ] && rm -rf metadata/cache
-[ -e metadata/md5-cache ] && rm -rf metadata/md5-cache
 # the rsync command wiped our critical .gitignore file, so recreate it.
 echo "distfiles/*" > .gitignore || exit 2
 echo "packages/*" >> .gitignore || exit 3
