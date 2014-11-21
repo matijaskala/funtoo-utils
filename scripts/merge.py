@@ -20,7 +20,6 @@ funtoo_original_packages = [
 	"app-dicts/dictd-moby-thesaurus",
 	"app-portage/genlop",
 	"mail-mta/postfix",
-	"sys-boot/boot-update",
 	"sys-cluster/glance",
 	"sys-cluster/nova",
 	"sys-cluster/vzctl",
