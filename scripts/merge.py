@@ -20,19 +20,10 @@ funtoo_original_packages = [
 	"app-dicts/dictd-moby-thesaurus",
 	"app-portage/genlop",
 	"mail-mta/postfix",
-	"sys-cluster/glance",
-	"sys-cluster/nova",
 	"sys-cluster/vzctl",
 	"sys-kernel/debian-sources",
-	"sys-kernel/debian-sources-lts",
 	"sys-kernel/dkms",
-	"sys-kernel/linode-sources",
-	"sys-kernel/openvz-rhel5-stable",
 	"sys-kernel/openvz-rhel6-stable",
-	"sys-kernel/openvz-rhel6-test",
-	"sys-kernel/sysrescue-std-sources",
-	"sys-kernel/ubuntu-server",
-	"sys-kernel/ubuntu-sources",
 ]
 
 partylinux_merge_packages = [
