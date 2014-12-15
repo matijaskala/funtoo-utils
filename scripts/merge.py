@@ -29,6 +29,7 @@ partylinux_merge_packages = [
 	"dev-util/kdevplatform",
 	"sys-apps/systemd",
 	"sys-devel/gcc",
+	"x11-libs/cairo",
 ]
 
 steps = [
