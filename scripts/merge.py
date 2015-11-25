@@ -7,7 +7,7 @@ if not os.path.exists("/usr/bin/svn"):
 	print("svn binary not found at /usr/bin/svn. Exiting.")
 	sys.exit(1)
 
-gentoo_src = Tree("gentoo-x86", "gentoo.org", "git://github.com/matijaskala/gentoo-x86.git", pull=True)
+gentoo_src = Tree("gentoo", "master", "git://anongit.gentoo.org/repo/gentoo.git", pull=True)
 funtoo_utils = DeadTree("funtoo-utils",os.path.abspath(".."))
 party_overlay = Tree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
 ubuntu_overlay = Tree("ubuntu-overlay", branch, "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
@@ -37,15 +37,13 @@ steps = [
 	ProfileDepFix(),
 	SyncDir(party_overlay.root,"licenses"),
 	SyncDir(party_overlay.root,"eclass"),
+	SyncDir(ubuntu_overlay.root, "eclass"),
 	SyncFiles(funtoo_utils.root, {
 		"data/layout.conf":"metadata/layout.conf",
 		"data/gitignore":".gitignore",
 	}),
 	InsertEbuilds(party_overlay, select="all", skip=funtoo_original_packages, replace=True, merge=partylinux_merge_packages),
 	InsertEbuilds(ubuntu_overlay),
-	SyncFiles(ubuntu_overlay.root, {
-                "eclass/ubuntu-versionator.eclass":"eclass/ubuntu-versionator.eclass"
-        }),
 	InsertEbuilds(elementary_overlay, select=["dev-libs/properties-cpp", "gnome-base/gnome-desktop", "gnome-base/gsettings-desktop-schemas", "x11-libs/gtk+"], skip=None, replace=True, merge=["gnome-base/gnome-desktop"]),
 	InsertEbuilds(funtoo_original_overlay, select=funtoo_original_packages, skip=None, replace=True),
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader"], replace=True),
