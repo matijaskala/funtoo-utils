@@ -12,6 +12,7 @@ funtoo_utils = DeadTree("funtoo-utils",os.path.abspath(".."))
 party_overlay = Tree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
 ubuntu_overlay = Tree("ubuntu-overlay", branch, "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
 funtoo_original_overlay = Tree("funtoo-overlay", branch, "git://github.com/funtoo/funtoo-overlay.git", pull=True)
+gnome_overlay = Tree("gnome", "master", "git://anongit.gentoo.org/proj/gnome.git", pull=True)
 elementary_overlay = Tree("elementary", "master", "git://github.com/pimvullers/elementary.git", pull=True)
 sabayon_for_gentoo = Tree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
 
@@ -44,6 +45,7 @@ steps = [
 	}),
 	InsertEbuilds(party_overlay, select="all", skip=funtoo_original_packages, replace=True, merge=partylinux_merge_packages),
 	InsertEbuilds(ubuntu_overlay),
+	InsertEbuilds(gnome_overlay, select=["app-admin/packagekit", "app-admin/packagekit-base", "app-admin/packagekit-gtk"], replace=True, merge=True),
 	InsertEbuilds(elementary_overlay, select=["dev-libs/properties-cpp", "gnome-base/gnome-desktop", "gnome-base/gsettings-desktop-schemas", "x11-libs/gtk+"], skip=None, replace=True, merge=["gnome-base/gnome-desktop"]),
 	InsertEbuilds(funtoo_original_overlay, select=funtoo_original_packages, skip=None, replace=True),
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader"], replace=True),
