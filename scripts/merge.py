@@ -38,11 +38,6 @@ steps = [
 	ProfileDepFix(),
 	SyncDir(party_overlay.root,"licenses"),
 	SyncDir(party_overlay.root,"eclass"),
-	SyncDir(ubuntu_overlay.root, "eclass"),
-	SyncFiles(funtoo_utils.root, {
-		"data/layout.conf":"metadata/layout.conf",
-		"data/gitignore":".gitignore",
-	}),
 	InsertEbuilds(party_overlay, select="all", skip=funtoo_original_packages, replace=True, merge=partylinux_merge_packages),
 	InsertEbuilds(ubuntu_overlay),
 	InsertEbuilds(gnome_overlay, select=["app-admin/packagekit", "app-admin/packagekit-base", "app-admin/packagekit-gtk"], replace=True),
