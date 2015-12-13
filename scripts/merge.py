@@ -15,11 +15,10 @@ funtoo_original_overlay = Tree("funtoo-overlay", branch, "git://github.com/funto
 gnome_overlay = Tree("gnome", "master", "git://anongit.gentoo.org/proj/gnome.git", pull=True)
 elementary_overlay = Tree("elementary", "master", "git://github.com/pimvullers/elementary.git", pull=True)
 sabayon_for_gentoo = Tree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
+sabayon_distro_src = Tree("sabayon-distro", "master", "git://github.com/Sabayon/sabayon-distro.git", pull=True)
 
 funtoo_original_packages = [
-	"app-dicts/dictd-moby-thesaurus",
 	"sys-kernel/debian-sources",
-	"sys-kernel/dkms",
 	"sys-kernel/openvz-rhel6-stable",
 ]
 
@@ -33,7 +32,7 @@ steps = [
 	SyncTree(gentoo_src,exclude=["/metadata/cache/**", "CVS", "ChangeLog", "dev-util/metro"]),
 	ApplyPatchSeries("%s/funtoo/patches" % party_overlay.root ),
 	ThirdPartyMirrors(),
-	SyncDir(party_overlay.root, "profiles", exclude=["categories", "default", "repo_name", "updates", "package.mask/party-compat"]),
+	SyncDir(party_overlay.root, "profiles", exclude=["categories", "repo_name", "updates"]),
 	MergeUpdates(party_overlay.root),
 	ProfileDepFix(),
 	SyncDir(party_overlay.root,"licenses"),
