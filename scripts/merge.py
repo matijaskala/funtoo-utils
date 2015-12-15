@@ -38,7 +38,7 @@ steps = [
 	SyncDir(party_overlay.root,"licenses"),
 	SyncDir(party_overlay.root,"eclass"),
 	InsertEbuilds(party_overlay, select="all", skip=funtoo_original_packages, replace=True, merge=partylinux_merge_packages),
-	InsertEbuilds(ubuntu_overlay),
+	InsertEbuilds(ubuntu_overlay, replace=True),
 	InsertEbuilds(gnome_overlay, select=["app-admin/packagekit", "app-admin/packagekit-base", "app-admin/packagekit-gtk"], replace=True),
 	InsertEbuilds(elementary_overlay, select=["dev-libs/properties-cpp", "gnome-base/gnome-desktop", "gnome-base/gsettings-desktop-schemas", "x11-libs/gtk+"], skip=None, replace=True, merge=["gnome-base/gnome-desktop"]),
 	InsertEbuilds(funtoo_original_overlay, select=funtoo_original_packages, skip=None, replace=True),
