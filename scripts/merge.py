@@ -11,6 +11,7 @@ gentoo_src = Tree("gentoo", "master", "git://anongit.gentoo.org/repo/gentoo.git"
 funtoo_utils = DeadTree("funtoo-utils",os.path.abspath(".."))
 party_overlay = Tree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
 ubuntu_overlay = Tree("ubuntu-overlay", branch, "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
+stable_overlay = Tree("stable-overlay", branch, "git://github.com/matijaskala/stable-overlay.git" pull=True)
 funtoo_original_overlay = Tree("funtoo-overlay", branch, "git://github.com/funtoo/funtoo-overlay.git", pull=True)
 gnome_overlay = Tree("gnome", "master", "git://anongit.gentoo.org/proj/gnome.git", pull=True)
 elementary_overlay = Tree("elementary", "master", "git://github.com/pimvullers/elementary.git", pull=True)
@@ -39,6 +40,7 @@ steps = [
 	SyncDir(party_overlay.root,"eclass"),
 	InsertEbuilds(party_overlay, select="all", skip=funtoo_original_packages, replace=True, merge=partylinux_merge_packages),
 	InsertEbuilds(ubuntu_overlay, replace=True),
+	InsertEbuilds(stable_overlay, replace=True),
 	InsertEbuilds(gnome_overlay, select=["app-admin/packagekit", "app-admin/packagekit-base", "app-admin/packagekit-gtk"], replace=True),
 	InsertEbuilds(elementary_overlay, select=["dev-libs/properties-cpp", "gnome-base/gnome-desktop", "gnome-base/gsettings-desktop-schemas", "x11-libs/gtk+"], skip=None, replace=True, merge=["gnome-base/gnome-desktop"]),
 	InsertEbuilds(funtoo_original_overlay, select=funtoo_original_packages, skip=None, replace=True),
