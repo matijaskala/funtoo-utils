@@ -11,7 +11,7 @@ gentoo_src = Tree("gentoo", "master", "git://anongit.gentoo.org/repo/gentoo.git"
 funtoo_utils = DeadTree("funtoo-utils",os.path.abspath(".."))
 party_overlay = Tree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
 ubuntu_overlay = Tree("ubuntu-overlay", branch, "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
-stable_overlay = Tree("stable-overlay", branch, "git://github.com/matijaskala/stable-overlay.git" pull=True)
+stable_overlay = Tree("stable-overlay", branch, "git://github.com/matijaskala/stable-overlay.git", pull=True)
 funtoo_original_overlay = Tree("funtoo-overlay", branch, "git://github.com/funtoo/funtoo-overlay.git", pull=True)
 gnome_overlay = Tree("gnome", "master", "git://anongit.gentoo.org/proj/gnome.git", pull=True)
 elementary_overlay = Tree("elementary", "master", "git://github.com/pimvullers/elementary.git", pull=True)
