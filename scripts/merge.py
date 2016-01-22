@@ -44,7 +44,6 @@ steps = [
 	InsertEbuilds(elementary_overlay, select=["dev-libs/properties-cpp", "gnome-base/gnome-desktop", "gnome-base/gsettings-desktop-schemas", "x11-libs/gtk+"], skip=None, replace=True, merge=["gnome-base/gnome-desktop"]),
 	InsertEbuilds(funtoo_original_overlay, select=funtoo_original_packages, skip=None, replace=True),
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader", "app-admin/authconfig", "dev-libs/libreport", "dev-python/python-meh", "net-misc/fcoe-utils", "net-misc/lldpad", "sys-apps/libhbalinux", "sys-auth/realmd"], replace=True),
-	InsertEbuilds(sabayon_distro_src, select=["app-admin/anaconda"], replace=True),
 	ApplyPatchSeries("%s/partylinux/patches" % party_overlay.root ),
 	Minify(),
 	GenCache(),
