@@ -1,0 +1,23 @@
+#!/bin/sh
+
+echo 'Kam naj se sistem namesti?'
+read DEST
+[ -e "$DEST" ] || [ -e "/dev/$DEST" ] && DEST="/dev/$DEST" || exit 1
+[ -d "$DEST" ] || mkdir /mnt/dest && mount "$DEST" /mnt/dest && DEST=/mnt/dest || exit 1
+echo 'Nameščam...'
+unsquashfs -d "$DEST/__root" /mnt/cdrom/image.squashfs || exit 1
+post_unpack "$DEST/__root" || exit 1
+mv "$DEST/__root/*" "$DEST" || exit 1
+rmdir "$DEST/__root" || exit 1
+git clone git://github.com/matijaskala/ports-2013.git "$DEST/usr/portage"
+cat > "$DEST/etc/portage/repos.conf" << EOF
+[DEFAULT]
+main-repo = gentoo
+
+[gentoo]
+location = /usr/portage
+sync-type = git
+sync-uri = git://github.com/matijaskala/ports-2013.git
+auto-sync = yes
+
+EOF
