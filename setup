@@ -57,7 +57,7 @@ mount -B /proc "$DEST/proc"
 touch "$DEST/etc/resolv.conf"
 mount -B /etc/resolv.conf "$DEST/etc/resolv.conf"
 chroot "$DEST" git clone git://github.com/matijaskala/ports-2013.git /usr/portage
-chroot "$DEST" sh -c "ACCEPT_KEYWORDS='~amd64' emerge -q shadow"
+chroot "$DEST" sh -c "ACCEPT_KEYWORDS='~amd64' emerge -qO1 shadow"
 echo "Enter root password"
 chroot "$DEST" passwd
 umount "$DEST/etc/resolv.conf"
