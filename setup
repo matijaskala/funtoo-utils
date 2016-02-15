@@ -9,13 +9,13 @@ echo -n 'SWAP: /dev/'
 read SWAP
 echo 'Installing...'
 DEST=/mnt/dest
-mkdir "$DEST" || exit 1
+install -d "$DEST" || exit 1
 mount "/dev/$ROOT" /mnt/dest || exit 1
-mkdir "$DEST/boot" || exit 1
+install -d "$DEST/boot" || exit 1
 mount "/dev/$BOOT" "$DEST/boot"
 unsquashfs -d "$DEST/squashfs-root" /mnt/cdrom/image.squashfs || exit 1
 post_unpack "$DEST/squashfs-root" || exit 1
-cp -a "$DEST/squashfs-root"/* "$DEST" || exit 1
+( cd "$DEST/squashfs-root" && find -exec mv {} "$DEST"/{} + ) || exit 1
 rmdir "$DEST/squashfs-root" || exit 1
 cat > "$DEST/etc/fstab" << EOF
 # /etc/fstab: static file system information.
