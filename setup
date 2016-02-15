@@ -10,8 +10,8 @@ read SWAP
 echo 'Installing...'
 DEST=/mnt/dest
 install -d "$DEST" || exit 1
-umount "$DEST"
 umount "$DEST/boot"
+umount "$DEST"
 mount "/dev/$ROOT" "$DEST" || exit 1
 install -d "$DEST/boot" || exit 1
 mount "/dev/$BOOT" "$DEST/boot"
