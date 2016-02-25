@@ -7,16 +7,21 @@ echo -n 'BOOT: /dev/'
 read BOOT
 echo -n 'SWAP: /dev/'
 read SWAP
+echo -n 'Install bootloader to: /dev/'
+read BOOTLOADER
+echo -n 'Username: '
+read USERNAME
 echo 'Installing...'
 DEST=/mnt/dest
-mkdir "$DEST" || exit 1
-mount "/dev/$ROOT" /mnt/dest || exit 1
-mkdir "$DEST/boot" || exit 1
+install -d "$DEST" || exit 1
+umount "$DEST/boot"
+umount "$DEST"
+mount "/dev/$ROOT" "$DEST" || exit 1
+install -d "$DEST/boot" || exit 1
 mount "/dev/$BOOT" "$DEST/boot"
-unsquashfs /mnt/cdrom/image.squashfs || exit 1
-post_unpack squashfs-root || exit 1
-cp -a squashfs-root/* "$DEST" || exit 1
-rmdir squashfs-root || exit 1
+rm -rf "$DEST/squashfs-root"
+unsquashfs -f -d "$DEST" /mnt/cdrom/image.squashfs || exit 1
+post_unpack "$DEST" || exit 1
 cat > "$DEST/etc/fstab" << EOF
 # /etc/fstab: static file system information.
 #
@@ -53,11 +58,13 @@ auto-sync = yes
 
 EOF
 mount -B /proc "$DEST/proc"
+touch "$DEST/etc/resolv.conf"
 mount -B /etc/resolv.conf "$DEST/etc/resolv.conf"
 chroot "$DEST" git clone git://github.com/matijaskala/ports-2013.git /usr/portage
 chroot "$DEST" sh -c "ACCEPT_KEYWORDS='~amd64' emerge -q google-chrome"
 chroot "$DEST" sh -c "ACCEPT_KEYWORDS='~amd64' emerge -q shadow"
-echo "Enter root password"
-chroot "$DEST" passwd
+chroot "$DEST" useradd -mp "" -G audio,disk,users,video,wheel "$USERNAME"
+chroot "$DEST" grub2-install "/dev/$BOOTLOADER"
+chroot "$DEST" grub2-mkconfig -o "/boot/grub/grub.cfg"
 umount "$DEST/etc/resolv.conf"
 umount "$DEST/proc"
