@@ -1,28 +1,26 @@
-#!/bin/sh
+#!/bin/python2
 
-blkid
-echo -n 'ROOT: /dev/'
-read ROOT
-echo -n 'BOOT: /dev/'
-read BOOT
-echo -n 'SWAP: /dev/'
-read SWAP
-echo -n 'Install bootloader to: /dev/'
-read BOOTLOADER
-echo -n 'Username: '
-read USERNAME
-echo 'Installing...'
-DEST=/mnt/dest
-install -d "$DEST" || exit 1
-umount "$DEST/boot"
-umount "$DEST"
-mount "/dev/$ROOT" "$DEST" || exit 1
-install -d "$DEST/boot" || exit 1
-mount "/dev/$BOOT" "$DEST/boot"
-rm -rf "$DEST/squashfs-root"
-unsquashfs -f -d "$DEST" /mnt/cdrom/image.squashfs || exit 1
-post_unpack "$DEST" || exit 1
-cat > "$DEST/etc/fstab" << EOF
+import subprocess
+
+subprocess.call(["blkid"])
+ROOT = raw_input('ROOT: /dev/')
+BOOT = raw_input('BOOT: /dev/')
+SWAP = raw_input('SWAP: /dev/')
+BOOTLOADER = raw_input('Install bootloader to: /dev/')
+USERNAME = raw_input('Username: ')
+print 'Installing...'
+DEST = '/mnt/dest'
+subprocess.call(['install', '-d', DEST])
+#subprocess.call(['umount', DEST + '/boot'])
+#subprocess.call(['umount', DEST])
+subprocess.call(['mount', '/dev/' + ROOT, DEST])
+subprocess.call(['install', '-d', DEST + '/boot'])
+subprocess.call(['mount', '/dev/' + BOOT, DEST + '/boot'])
+subprocess.call(['rm', '-r', '-f', DEST + '/squashfs-root'])
+subprocess.call(['unsquashfs', '-f', '-d', DEST, '/mnt/cdrom/image.squashfs'])
+subprocess.call(['post_unpack', DEST])
+fstab = open(DEST + "/etc/fstab", "w")
+print >>fstab, """
 # /etc/fstab: static file system information.
 #
 # noatime turns off atimes for increased performance (atimes normally aren't 
@@ -39,32 +37,33 @@ cat > "$DEST/etc/fstab" << EOF
 # <fs>			<mountpoint>	<type>		<opts>		<dump/pass>
 
 # NOTE: If your BOOT partition is ReiserFS, add the notail option to opts.
-/dev/$BOOT		/boot		ext2		noauto,noatime	1 2
-/dev/$ROOT		/		ext3		noatime		0 1
-/dev/$SWAP		none		swap		sw		0 0
-/dev/cdrom		/mnt/cdrom	auto		noauto,ro	0 0
-/dev/fd0		/mnt/floppy	auto		noauto		0 0
-
-EOF
-cat > "$DEST/etc/portage/repos.conf" << EOF
-[DEFAULT]
-main-repo = gentoo
-
-[gentoo]
-location = /usr/portage
-sync-type = git
-sync-uri = git://github.com/matijaskala/ports-2013.git
-auto-sync = yes
-
-EOF
-mount -B /proc "$DEST/proc"
-touch "$DEST/etc/resolv.conf"
-mount -B /etc/resolv.conf "$DEST/etc/resolv.conf"
-chroot "$DEST" git clone git://github.com/matijaskala/ports-2013.git /usr/portage
-chroot "$DEST" sh -c "ACCEPT_KEYWORDS='~amd64' emerge -q google-chrome"
-chroot "$DEST" sh -c "ACCEPT_KEYWORDS='~amd64' emerge -q shadow"
-chroot "$DEST" useradd -mp "" -G audio,disk,users,video,wheel "$USERNAME"
-chroot "$DEST" grub2-install "/dev/$BOOTLOADER"
-chroot "$DEST" grub2-mkconfig -o "/boot/grub/grub.cfg"
-umount "$DEST/etc/resolv.conf"
-umount "$DEST/proc"
+"""
+print >>fstab, "/dev/" + BOOT + "		/boot		ext2		noauto,noatime	1 2"
+print >>fstab, "/dev/" + ROOT + "		/		ext3		noatime		0 1"
+print >>fstab, "/dev/" + SWAP + "		none		swap		sw		0 0"
+print >>fstab, "/dev/cdrom		/mnt/cdrom	auto		noauto,ro	0 0"
+print >>fstab, "/dev/fd0		/mnt/floppy	auto		noauto		0 0"
+print >>fstab, ""
+fstab.close()
+repos_conf = open(DEST + '/etc/portage/repos.conf', 'w')
+print >>repos_conf, '[DEFAULT]'
+print >>repos_conf, 'main-repo = gentoo'
+print >>repos_conf, ''
+print >>repos_conf, '[gentoo]'
+print >>repos_conf, 'location = /usr/portage'
+print >>repos_conf, 'sync-type = git'
+print >>repos_conf, 'sync-uri = git://github.com/matijaskala/ports-2013.git'
+print >>repos_conf, 'auto-sync = yes'
+print >>repos_conf, ''
+repos_conf.close()
+subprocess.call(['mount', '-B', '/proc', DEST + '/proc'])
+subprocess.call(['touch', DEST + '/etc/resolv.conf'])
+subprocess.call(['mount', '-B', '/etc/resolv.conf', DEST + '/etc/resolv.conf'])
+subprocess.call(['chroot', DEST, 'git', 'clone', 'git://github.com/matijaskala/ports-2013.git', '/usr/portage'])
+subprocess.call(['chroot', DEST, 'sh', '-c', "ACCEPT_KEYWORDS=\'~amd64\' emerge -q google-chrome"])
+subprocess.call(['chroot', DEST, 'sh', '-c', "ACCEPT_KEYWORDS=\'~amd64\' emerge -q shadow"])
+subprocess.call(['chroot', DEST, 'useradd', '-mp', '', '-G', 'audio,disk,users,video,wheel', USERNAME])
+subprocess.call(['chroot', DEST, 'grub2-install', '/dev/' + BOOTLOADER])
+subprocess.call(['chroot', DEST, 'grub2-mkconfig', '-o', '/boot/grub/grub.cfg'])
+subprocess.call(['umount', DEST + '/etc/resolv.conf'])
+subprocess.call(['umount', DEST + '/proc'])
