@@ -1,24 +1,96 @@
 #!/bin/python2
 
-import subprocess
+import gtk, subprocess, sys
 
-subprocess.call(["blkid"])
-ROOT = raw_input('ROOT: /dev/')
-BOOT = raw_input('BOOT: /dev/')
-SWAP = raw_input('SWAP: /dev/')
-BOOTLOADER = raw_input('Install bootloader to: /dev/')
-USERNAME = raw_input('Username: ')
-print 'Installing...'
+partitions = [ "/dev/sda1", "/dev/sda2", "/dev/sda3", "/dev/sda4" ]
+mount_dialog = gtk.Dialog(flags = gtk.DIALOG_MODAL, buttons = (gtk.STOCK_OK, gtk.RESPONSE_OK))
+for x in partitions:
+    hbox = gtk.HBox()
+    label = gtk.Label(x)
+    entry = gtk.Entry()
+    hbox.pack_start(label)
+    hbox.pack_start(entry)
+    mount_dialog.vbox.pack_start(hbox)
+hbox = gtk.HBox()
+label = gtk.Label("Install bootloader to:")
+entry = gtk.Entry()
+entry.set_text("/dev/sda")
+hbox.pack_start(label)
+hbox.pack_start(entry)
+mount_dialog.vbox.pack_start(hbox)
+hbox = gtk.HBox()
+label = gtk.Label("Username:")
+entry = gtk.Entry()
+hbox.pack_start(label)
+hbox.pack_start(entry)
+mount_dialog.vbox.pack_start(hbox)
+mount_dialog.show_all()
+if mount_dialog.run() != gtk.RESPONSE_OK:
+    sys.exit(1)
+mount_dialog.hide()
+has_root = False
+for x in mount_dialog.vbox.get_children():
+    for y in x.get_children():
+        if type(y) is gtk.Entry:
+            if y.get_text() == "/":
+                has_root = True
+                break
+if not has_root:
+        print "Need '/' mountpoint"
+        sys.exit(1)
+for x in mount_dialog.vbox.get_children():
+    if type(x) is gtk.HButtonBox:
+        continue
+    elif type(y) is gtk.Separator:
+        continue
+    for y in x.get_children():
+        if type(y) is gtk.Label:
+            m1 = y.get_text()
+        elif type(y) is gtk.Entry:
+            m2 = y.get_text()
+        else:
+            print "Internal error"
+            sys.exit(1)
+    if m1[:5] == "/dev/":
+        if m2[:1] == "/":
+            continue
+        elif m2 == "swap":
+            continue
+        elif m2 == "":
+            continue
+        else:
+            print "Invalid mountpoint: '%s'" % m2
+            sys.exit(1)
+    elif m1 == "Install bootloader to:":
+        if m2[:5] != "/dev/":
+            sys.exit(1)
+    elif m1 == "Username:":
+        if m2 == "":
+            print "Empty username not allowed"
+            sys.exit(1)
+    else:
+        print "Internal error"
+        sys.exit(1)
 DEST = '/mnt/dest'
-subprocess.call(['install', '-d', DEST])
-#subprocess.call(['umount', DEST + '/boot'])
-#subprocess.call(['umount', DEST])
-subprocess.call(['mount', '/dev/' + ROOT, DEST])
-subprocess.call(['install', '-d', DEST + '/boot'])
-subprocess.call(['mount', '/dev/' + BOOT, DEST + '/boot'])
-subprocess.call(['rm', '-r', '-f', DEST + '/squashfs-root'])
+if subprocess.call(['install', '-d', DEST]) == 1:
+    sys.exit(1)
+print 'Installing...'
+for x in mount_dialog.vbox.get_children():
+    if type(x) is gtk.HButtonBox:
+        continue
+    for y in x.get_children():
+        if type(y) is gtk.Label:
+            m1 = y.get_text()
+        elif type(y) is gtk.Entry:
+            m2 = y.get_text()
+    if m1[:5] == "/dev/" and m2[:1] == "/":
+        subprocess.call(["install", "-d", DEST + m2])
+        subprocess.call(["mount", m1, DEST + m2])
 subprocess.call(['unsquashfs', '-f', '-d', DEST, '/mnt/cdrom/image.squashfs'])
 subprocess.call(['post_unpack', DEST])
+subprocess.call(['mount', '-B', '/proc', DEST + '/proc'])
+subprocess.call(['touch', DEST + '/etc/resolv.conf'])
+subprocess.call(['mount', '-B', '/etc/resolv.conf', DEST + '/etc/resolv.conf'])
 fstab = open(DEST + "/etc/fstab", "w")
 print >>fstab, """
 # /etc/fstab: static file system information.
@@ -38,14 +110,33 @@ print >>fstab, """
 
 # NOTE: If your BOOT partition is ReiserFS, add the notail option to opts.
 """
-print >>fstab, "/dev/" + BOOT + "		/boot		ext2		noauto,noatime	1 2"
-print >>fstab, "/dev/" + ROOT + "		/		ext3		noatime		0 1"
-print >>fstab, "/dev/" + SWAP + "		none		swap		sw		0 0"
+for x in mount_dialog.vbox.get_children():
+    if type(x) is gtk.HButtonBox:
+        continue
+    for y in x.get_children():
+        if type(y) is gtk.Label:
+            m1 = y.get_text()
+        elif type(y) is gtk.Entry:
+            m2 = y.get_text()
+    if m1[:5] == "/dev/":
+        if m2 == "/":
+            print >>fstab, m1 + "		/		ext3		noatime		0 1"
+        elif m2[:1] == "/":
+            print >>fstab, m1 + "		"+m2+"		ext2		noatime 	1 2"
+        elif m2 == "swap":
+            print >>fstab, m1 + "		none		swap		sw		0 0"
+    elif m1 == "Install bootloader to:":
+        subprocess.call(['chroot', DEST, 'grub2-install', m2])
+        subprocess.call(['chroot', DEST, 'grub2-mkconfig', '-o', '/boot/grub/grub.cfg'])
+    elif m1 == "Username:":
+        subprocess.call(['chroot', DEST, 'sed', '-i', 's/# %sudo/%sudo/', '/etc/sudoers'])
+        subprocess.call(['chroot', DEST, 'groupadd', '-g', '20', 'sudo'])
+        subprocess.call(['chroot', DEST, 'useradd', '-mp', '', '-G', 'audio,disk,sudo,users,video,wheel', m2])
 print >>fstab, "/dev/cdrom		/mnt/cdrom	auto		noauto,ro	0 0"
 print >>fstab, "/dev/fd0		/mnt/floppy	auto		noauto		0 0"
 print >>fstab, ""
 fstab.close()
-repos_conf = open(DEST + '/etc/portage/repos.conf', 'w')
+repos_conf = open(DEST + "/etc/portage/repos.conf", "w")
 print >>repos_conf, '[DEFAULT]'
 print >>repos_conf, 'main-repo = gentoo'
 print >>repos_conf, ''
@@ -56,14 +147,24 @@ print >>repos_conf, 'sync-uri = git://github.com/matijaskala/ports-2013.git'
 print >>repos_conf, 'auto-sync = yes'
 print >>repos_conf, ''
 repos_conf.close()
-subprocess.call(['mount', '-B', '/proc', DEST + '/proc'])
-subprocess.call(['touch', DEST + '/etc/resolv.conf'])
-subprocess.call(['mount', '-B', '/etc/resolv.conf', DEST + '/etc/resolv.conf'])
+package_keywords = open(DEST + "/etc/portage/package.accept_keywords", "w+")
+print >>package_keywords, "sys-apps/shadow ~amd64"
+print >>package_keywords, "www-client/google-chrome ~amd64"
+package_keywords.close()
+package_license = open(DEST + "/etc/portage/package.license", "w+")
+print >>package_license, "www-client/google-chrome google-chrome"
+package_license.close()
 subprocess.call(['chroot', DEST, 'git', 'clone', 'git://github.com/matijaskala/ports-2013.git', '/usr/portage'])
-subprocess.call(['chroot', DEST, 'sh', '-c', "ACCEPT_KEYWORDS=\'~amd64\' emerge -q google-chrome"])
-subprocess.call(['chroot', DEST, 'sh', '-c', "ACCEPT_KEYWORDS=\'~amd64\' emerge -q shadow"])
-subprocess.call(['chroot', DEST, 'useradd', '-mp', '', '-G', 'audio,disk,users,video,wheel', USERNAME])
-subprocess.call(['chroot', DEST, 'grub2-install', '/dev/' + BOOTLOADER])
-subprocess.call(['chroot', DEST, 'grub2-mkconfig', '-o', '/boot/grub/grub.cfg'])
+subprocess.call(['chroot', DEST, 'emerge', '-q', 'google-chrome', 'shadow'])
 subprocess.call(['umount', DEST + '/etc/resolv.conf'])
 subprocess.call(['umount', DEST + '/proc'])
+for x in mount_dialog.vbox.get_children():
+    if type(x) is gtk.HButtonBox:
+        continue
+    for y in x.get_children():
+        if type(y) is gtk.Label:
+            m1 = y.get_text()
+        elif type(y) is gtk.Entry:
+            m2 = y.get_text()
+    if m1[:5] == "/dev/" and m2[:1] == "/":
+        subprocess.call(["umount", DEST + m2])
