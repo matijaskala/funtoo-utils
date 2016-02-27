@@ -1,16 +1,99 @@
 #!/bin/python2
 
-import gtk, subprocess, sys
+import glob, gtk, os, re, stat, subprocess, sys
 
-partitions = [ "/dev/sda1", "/dev/sda2", "/dev/sda3", "/dev/sda4" ]
+def execGetOutput(cmd, withError = False, shell = True, env = {'LANG' : 'en_US'}):
+  """
+  Executes a command and return its output in a list, line by line.
+  In case of error, it returns a subprocess.CalledProcessorError exception.
+  The command is executed by default in a /bin/sh shell with en_US locale.
+  """
+  stdErr = None
+  if withError:
+    stdErr = subprocess.STDOUT
+  if sys.version_info[0] > 2 or (sys.version_info[0] == 2 and sys.version_info[1] >= 7): # ver >= 2.7
+    return subprocess.check_output(cmd, stderr = stdErr, shell = shell, env = env).splitlines()
+  else:
+    wrappedCmd = []
+    if shell:
+      wrappedCmd.append('sh')
+      wrappedCmd.append('-c')
+      if isinstance(cmd, list):
+        wrappedCmd.append(' '.join(cmd))
+      else:
+        wrappedCmd.append(cmd)
+    else:
+      if isinstance(cmd, list):
+        wrappedCmd = cmd
+      else:
+        wrappedCmd.append(cmd)
+    p = subprocess.Popen(wrappedCmd, stdout = subprocess.PIPE, stderr = stdErr)
+    output = p.communicate()[0]
+    if p.returncode == 0:
+      return output.splitlines()
+    else:
+      raise subprocess.CalledProcessError(returncode = p.returncode, cmd = cmd)
+
+def getFsType(partitionDevice):
+  """
+  Returns the file system type for that partition.
+  'partitionDevice' should no be prefixed with '/dev/' if it's a block device.
+  It can be a full path if the partition is contained in a file.
+  Returns 'Extended' if the partition is an extended partition and has no filesystem.
+  """
+  if os.path.exists('/dev/{0}'.format(partitionDevice)) and stat.S_ISBLK(os.stat('/dev/{0}'.format(partitionDevice)).st_mode):
+    path = '/dev/{0}'.format(partitionDevice)
+  elif os.path.isfile(partitionDevice):
+    path = partitionDevice
+  else:
+    fstype = False
+    path = False
+  if path:
+    try:
+      fstype = execGetOutput(['/sbin/blkid', '-s', 'TYPE', '-o', 'value', path], shell = False)
+      if fstype:
+        fstype = fstype[0]
+      else:
+        fstype = False
+    except subprocess.CalledProcessError as e:
+      fstype = False
+    if not fstype:
+      # is it a real error or is it an extended partition?
+      try:
+        filetype = execGetOutput(['/usr/bin/file', '-s', path], shell = False)
+        if 'extended partition table' in filetype:
+          fstype = 'Extended'
+      except subprocess.CalledProcessError:
+        pass
+  return fstype
+
+def getPartitions(diskDevice):
+  """
+  Returns partitions matching exclusion filters.
+  """
+  if stat.S_ISBLK(os.stat('/dev/{0}'.format(diskDevice)).st_mode):
+    parts = [p.replace('/sys/block/{0}/'.format(diskDevice), '') for p in glob.glob('/sys/block/{0}/{0}*'.format(diskDevice))]
+    fsexclude = [False, 'Extended']
+    return [part for part in parts if getFsType(part) not in fsexclude]
+  else:
+    return None
+
+disks = []
+for l in open('/proc/partitions', 'r').read().splitlines():
+    if re.search(r' sd[^0-9]+$', l):
+        disks.append(re.sub(r'.*(sd.*)', r'\1', l))
+partitions = []
+for d in disks:
+        partitions.append(getPartitions(d))
 mount_dialog = gtk.Dialog(flags = gtk.DIALOG_MODAL, buttons = (gtk.STOCK_OK, gtk.RESPONSE_OK))
 for x in partitions:
-    hbox = gtk.HBox()
-    label = gtk.Label(x)
-    entry = gtk.Entry()
-    hbox.pack_start(label)
-    hbox.pack_start(entry)
-    mount_dialog.vbox.pack_start(hbox)
+    for y in x:
+        hbox = gtk.HBox()
+        label = gtk.Label(y)
+        entry = gtk.Entry()
+        hbox.pack_start(label)
+        hbox.pack_start(entry)
+        mount_dialog.vbox.pack_start(hbox)
 hbox = gtk.HBox()
 label = gtk.Label("Install bootloader to:")
 entry = gtk.Entry()
@@ -120,9 +203,9 @@ for x in mount_dialog.vbox.get_children():
             m2 = y.get_text()
     if m1[:5] == "/dev/":
         if m2 == "/":
-            print >>fstab, m1 + "		/		ext3		noatime		0 1"
+            print >>fstab, m1 + "		/		" + getFsType(m1) + "		noatime		0 1"
         elif m2[:1] == "/":
-            print >>fstab, m1 + "		"+m2+"		ext2		noatime 	1 2"
+            print >>fstab, m1 + "		" + m2 + "		" + getFsType(m1) + "		noatime 	1 2"
         elif m2 == "swap":
             print >>fstab, m1 + "		none		swap		sw		0 0"
     elif m1 == "Install bootloader to:":
