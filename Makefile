@@ -9,4 +9,3 @@ install:
   [ -e __portage_distfiles ] && mv __portage_distfiles portage/distfiles
   [ -e __portage_packages ] && mv __portage_packages portage/packages
   [ -e __portage_rpm ] && mv __portage_rpm portage/rpm
-  emerge --root=$(DESTDIR)/ -O coreutils portage
