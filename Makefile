@@ -1,3 +1,5 @@
+all:
+
 install:
 	mkdir -p $(DESTDIR)/usr
 	cd $(DESTDIR)/usr
