@@ -18,6 +18,7 @@ elementary_overlay = Tree("elementary", "master", "git://github.com/pimvullers/e
 sabayon_for_gentoo = Tree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
 sabayon_distro_src = Tree("sabayon-distro", "master", "git://github.com/Sabayon/sabayon-distro.git", pull=True)
 sabayon_tools = Tree("sabayon-tools", "master", "git://github.com/fusion809/sabayon-tools.git", pull=True)
+gamerlay = Tree("gamerlay", "master", "git://anongit.gentoo.org/proj/gamerlay.git", pull=True)
 
 funtoo_original_packages = [
 	"sys-kernel/debian-sources",
@@ -45,7 +46,8 @@ steps = [
 	InsertEbuilds(elementary_overlay, select=["dev-libs/properties-cpp", "gnome-base/gnome-desktop", "gnome-base/gsettings-desktop-schemas", "x11-libs/gtk+"], skip=None, replace=True, merge=["gnome-base/gnome-desktop"]),
 	InsertEbuilds(funtoo_original_overlay, select=funtoo_original_packages, skip=None, replace=True),
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader", "app-admin/authconfig", "dev-libs/libreport", "dev-python/python-meh", "net-misc/fcoe-utils", "net-misc/lldpad", "sys-apps/libhbalinux", "sys-auth/realmd"], replace=True),
-        InsertEbuilds(sabayon_tools, select=["media-video/rage", "x11-wm/moksha"]),
+        InsertEbuilds(sabayon_tools, select=["media-video/rage"]),
+        InsertEbuilds(gamerlay),
 	ApplyPatchSeries("%s/partylinux/patches" % party_overlay.root ),
 	Minify(),
 	GenCache(),
