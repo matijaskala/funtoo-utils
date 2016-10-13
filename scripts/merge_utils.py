@@ -60,18 +60,26 @@ class AutoGlobMask(MergeStep):
 		f.close()
 
 class ThirdPartyMirrors(MergeStep):
+	"Add funtoo's distfiles mirror, and add funtoo's mirrors as gentoo back-ups."
 
 	def run(self,tree):
 		orig = "%s/profiles/thirdpartymirrors" % tree.root
 		new = "%s/profiles/thirdpartymirrors.new" % tree.root
+		mirrors = "http://build.funtoo.org/distfiles http://ftp.osuosl.org/pub/funtoo/distfiles"
 		a = open(orig, "r")
 		b = open(new, "w")
 		for line in a:
 			ls = line.split()
 			if len(ls) and ls[0] == "gentoo":
-				b.write("gentoo\t"+ls[1]+" http://www.funtoo.org/distfiles "+" ".join(ls[2:])+"\n")
+
+				# Add funtoo mirrors as second and third Gentoo mirrors. So, try the main gentoo mirror first.
+				# If not there, maybe we forked it and the sources are removed from Gentoo's mirrors, so try
+				# ours. This allows us to easily fix mirroring issues for users.
+
+				b.write("gentoo\t"+ls[1]+" "+mirrors+" "+" ".join(ls[2:])+"\n")
 			else:
 				b.write(line)
+		b.write("funtoo %s\n" % mirrors)
 		a.close()
 		b.close()
 		os.unlink(orig)
@@ -181,7 +189,7 @@ class CleanTree(MergeStep):
 				continue
 			runShell("rm -rf %s/%s" % (tree.root, fn))
 
-class SyncTree(SyncDir):
+class SyncFromTree(SyncDir):
 	# sync a full portage tree, deleting any excess files in the target dir:
 	def __init__(self,srctree,exclude=[]):
 		self.srctree = srctree
@@ -190,6 +198,7 @@ class SyncTree(SyncDir):
 	def run(self,desttree):
 		SyncDir.run(self,desttree)
 		desttree.logTree(self.srctree)
+
 class Tree(object):
 	def __init__(self,name,branch="master",url=None,pull=False, trylocal=None):
 		self.name = name
@@ -352,11 +361,13 @@ class InsertEbuilds(MergeStep):
 			for cat in cats:
 				# All categories have a "-" in them and are directories:
 				if os.path.isdir(os.path.join(self.srctree.root,cat)):
-					if "-" in cat or cat == "virtuals":
+					if "-" in cat or cat == "virtual":
 						src_cat_set.add(cat)
-
-		with open(dest_cat_path, "r") as f:
-			dest_cat_set = set(f.read().splitlines())
+		if os.path.exists(dest_cat_path):
+			with open(dest_cat_path, "r") as f:
+				dest_cat_set = set(f.read().splitlines())
+		else:
+			dest_cat_set = set()
 
 		# Our main loop:
 		print "# Merging in ebuilds from %s" % self.srctree.root
@@ -366,6 +377,7 @@ class InsertEbuilds(MergeStep):
 				# not a valid category in source overlay, so skip it
 				continue
 			#runShell("install -d %s" % catdir)
+			catall = "%s/*" % cat
 			for pkg in os.listdir(catdir):
 				catpkg = "%s/%s" % (cat,pkg)
 				pkgdir = os.path.join(catdir, pkg)
@@ -383,10 +395,12 @@ class InsertEbuilds(MergeStep):
 				tpkgdir = os.path.join(tcatdir,pkg)
 				copy = False
 				copied = False
-				if self.replace == True or (type(self.replace) == types.ListType and "%s/%s" % (cat,pkg) in self.replace):
+				if self.replace == True or (isinstance(self.replace, list) and ((catpkg in self.replace) or (catall in self.replace))):
 					if not os.path.exists(tcatdir):
 						os.makedirs(tcatdir)
-					if self.merge is True or (isinstance(self.merge, list) and "%s/%s" % (cat,pkg) in self.merge and os.path.isdir(tpkgdir)):
+					if self.merge is True or (isinstance(self.merge, list) and ((catpkg in self.merge) or (catall in self.merge)) and os.path.isdir(tpkgdir)):
+						# We are being told to merge, and the destination catpkg dir exists... so merging is required! :)
+						# Manifests must be processed and combined:
 						try:
 							pkgdir_manifest_file = open("%s/Manifest" % pkgdir)
 							pkgdir_manifest = pkgdir_manifest_file.readlines()
@@ -430,10 +444,14 @@ class InsertEbuilds(MergeStep):
 					cpv = "/".join(tpkgdir.split("/")[-2:])
 					mergeLog.write("%s\n" % cpv)
 
-		with open(dest_cat_path, "w") as f:
-			f.write("\n".join(sorted(dest_cat_set)))
+		if os.path.isdir(os.path.dirname(dest_cat_path)):
+			# only write out if profiles/ dir exists -- it doesn't with shards.
+			with open(dest_cat_path, "w") as f:
+				f.write("\n".join(sorted(dest_cat_set)))
 
 class ProfileDepFix(MergeStep):
+
+	"ProfileDepFix undeprecates profiles marked as deprecated."
 
 	def run(self,tree):
 		fpath = os.path.join(tree.root,"profiles/profiles.desc")
@@ -448,10 +466,16 @@ class ProfileDepFix(MergeStep):
 					runShell("rm -f %s/profiles/%s/deprecated" % ( tree.root, prof_path ))
 
 class GenCache(MergeStep):
+
+	"GenCache runs egencache --update to update metadata."
+
 	def run(self,tree):
 		runShell("egencache --update --repo=gentoo --portdir=%s --jobs=4" % tree.root, abortOnFail=False)
 
 class GenUseLocalDesc(MergeStep):
+
+	"GenUseLocalDesc runs egencache to update use.local.desc"
+
 	def run(self,tree):
 		runShell("egencache --update-use-local-desc --portdir=%s" % tree.root, abortOnFail=False)
 
@@ -463,6 +487,9 @@ class GitPrep(MergeStep):
 		runShell("( cd %s; git checkout -B %s )" % ( tree.root, self.branch ))
 
 class Minify(MergeStep):
+
+	"Minify removes ChangeLogs and shrinks Manifests."
+
 	def run(self,tree):
 		runShell("( cd %s; find -iname ChangeLog -exec rm -f {} \; )" % tree.root )
 		runShell("( cd %s; find -iname Manifest -exec sed -n -i -e \"/DIST/p\" {} \; )" % tree.root )

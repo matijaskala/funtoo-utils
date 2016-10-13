@@ -32,12 +32,10 @@ partylinux_merge_packages = [
 ]
 
 steps = [
-	SyncTree(gentoo_src,exclude=["/metadata/cache/**", "CVS", "ChangeLog", "dev-util/metro"]),
+	SyncFromTree(gentoo_src,exclude=["metadata/.gitignore", "/metadata/cache/**", "ChangeLog", "dev-util/metro"]),
 	ApplyPatchSeries("%s/funtoo/patches" % party_overlay.root ),
-	ThirdPartyMirrors(),
 	SyncDir(party_overlay.root, "profiles", exclude=["categories", "repo_name", "updates"]),
 	MergeUpdates(party_overlay.root),
-	ProfileDepFix(),
 	SyncDir(party_overlay.root,"licenses"),
 	SyncDir(party_overlay.root,"eclass"),
 	InsertEbuilds(party_overlay, select="all", skip=funtoo_original_packages, replace=True, merge=partylinux_merge_packages),
@@ -49,7 +47,6 @@ steps = [
         InsertEbuilds(sabayon_tools, select=["media-video/rage"]),
         InsertEbuilds(gamerlay),
 	ApplyPatchSeries("%s/partylinux/patches" % party_overlay.root ),
-	Minify(),
 	GenCache(),
 	GenUseLocalDesc()
 ]
