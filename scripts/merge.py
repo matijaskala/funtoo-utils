@@ -2,11 +2,6 @@
 
 from merge_utils import *
 
-# Progress overlay merge
-if not os.path.exists("/usr/bin/svn"):
-	print("svn binary not found at /usr/bin/svn. Exiting.")
-	sys.exit(1)
-
 gentoo_src = GitTree("gentoo", "master", "git://anongit.gentoo.org/repo/gentoo.git", pull=True)
 funtoo_utils = Tree("funtoo-utils",os.path.abspath(".."))
 party_overlay = GitTree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
@@ -31,6 +26,7 @@ partylinux_merge_packages = [
 ]
 
 steps = [
+	GitCheckout("funtoo.org"),
 	SyncFromTree(gentoo_src,exclude=["metadata/.gitignore", "/metadata/cache/**", "ChangeLog", "dev-util/metro"]),
 	ApplyPatchSeries("%s/funtoo/patches" % party_overlay.root ),
 	SyncDir(party_overlay.root, "profiles", exclude=["categories", "repo_name", "updates"]),
@@ -49,18 +45,6 @@ steps = [
 	GenCache(),
 	GenUseLocalDesc()
 ]
-
-# work tree is a non-git tree in tmpfs for enhanced performance - we do all the heavy lifting there:
-
-work = GitTree("work", root=home+"work/merge-%s" % os.path.basename(dest[0]))
-work.run(steps)
-
-steps = [
-	GitCheckout("funtoo.org"),
-	SyncTree(work)
-]
-
-# then for the production tree, we rsync all changes on top of our prod git tree and commit:
 
 for d in dest:
 	if not os.path.isdir(d):
