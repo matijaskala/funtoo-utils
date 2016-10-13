@@ -13,7 +13,6 @@ party_overlay = GitTree("party-overlay", branch, "git://github.com/matijaskala/p
 ubuntu_overlay = GitTree("ubuntu-overlay", branch, "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
 stable_overlay = GitTree("stable-overlay", branch, "git://github.com/matijaskala/stable-overlay.git", pull=True)
 funtoo_original_overlay = GitTree("funtoo-overlay", branch, "git://github.com/funtoo/funtoo-overlay.git", pull=True)
-gnome_overlay = Tree("gnome", "master", "git://anongit.gentoo.org/proj/gnome.git", pull=True)
 elementary_overlay = GitTree("elementary", "master", "git://github.com/pimvullers/elementary.git", pull=True)
 sabayon_for_gentoo = GitTree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
 sabayon_distro_src = GitTree("sabayon-distro", "master", "git://github.com/Sabayon/sabayon-distro.git", pull=True)
