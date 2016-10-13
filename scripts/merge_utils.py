@@ -200,33 +200,94 @@ class SyncFromTree(SyncDir):
 		desttree.logTree(self.srctree)
 
 class Tree(object):
-	def __init__(self,name,branch="master",url=None,pull=False, trylocal=None):
+	def __init__(self,name,root):
 		self.name = name
+		self.root = root
+	def head(self):
+		return "None"
+
+class GitTree(Tree):
+
+	"A Tree (git) that we can use as a source for work jobs, and/or a target for running jobs."
+
+	def __init__(self,name,branch="master",url=None,commit=None,pull=False,root=None, trylocal=None):
+		self.name = name
+		self.root = root
 		self.branch = branch
+		self.commit = commit
 		self.url = url
 		self.merged = []
-		self.trylocal = trylocal
-		if self.trylocal and os.path.exists(self.trylocal):
-			base = os.path.basename(self.trylocal)
-			self.root = trylocal
-		else:
+		# if we don't specify root destination tree, assume we are source only:
+		if self.root == None:
+			self.writeTree = False
+			if self.url == None:
+				print("Error: please specify root or url for GitTree.")
+				sys.exit(1)
 			base = home+"git/source-trees"
 			self.root = "%s/%s" % ( base, self.name )
-
-		if not os.path.exists(base):
-			os.makedirs(base)
-		if os.path.exists(self.root):
-			runShell("(cd %s; git fetch origin)" % self.root )
-			runShell("(cd %s; git checkout %s)" % ( self.root, self.branch ))
-			if pull:
-				runShell("(cd %s; git pull -f origin %s)" % ( self.root, self.branch ))
+			if os.path.exists(self.root):
+				runShell("(cd %s; git fetch origin)" % self.root )
+				runShell("(cd %s; git checkout %s)" % ( self.root, self.branch ))
+				if pull:
+					runShell("(cd %s; git pull -f origin %s)" % ( self.root, self.branch ))
+			else:
+				if not os.path.exists(base):
+					os.makedirs(base)
+				if url:
+					runShell("(cd %s; git clone %s %s)" % ( base, self.url, self.name ))
+					runShell("(cd %s; git checkout %s)" % ( self.root, self.branch ))
+				else:
+					print("Error: tree %s does not exist, but no clone URL specified. Exiting." % self.root)
+					sys.exit(1)
 		else:
-			runShell("(cd %s; git clone %s %s)" % ( base, self.url, self.name ))
-			runShell("(cd %s; git checkout %s)" % ( self.root, self.branch ))
+			self.writeTree = True
+			if not os.path.isdir("%s/.git" % self.root):
+				self.push = False
+			else:
+				self.push = True
+		# branch is updated -- now switch to specific commit if one was specified:
+		if self.commit:
+			runShell("(cd %s; git checkout %s)" % ( self.root, self.commit ))
+
+	def gitCommit(self,message="",push=False):
+		runShell("( cd %s; git add . )" % self.root )
+		cmd = "( cd %s; [ -n \"$(git status --porcelain)\" ] && git commit -a -F - << EOF || exit 0\n" % self.root
+		if message != "":
+			cmd += "%s\n\n" % message
+		names = []
+		if len(self.merged):
+			cmd += "merged: \n\n"
+			for name, sha1 in self.merged:
+				if name in names:
+					# don't print dups
+					continue
+				names.append(name)
+				if sha1 != None:
+					cmd += "  %s: %s\n" % ( name, sha1 )
+		cmd += "EOF\n"
+		cmd += ")\n"
+		print "running: %s" % cmd
+		# we use os.system because this multi-line command breaks runShell() - really, breaks commands.getstatusoutput().
+		retval = os.system(cmd)
+		if retval != 0:
+			print "Commit failed."
+			sys.exit(1)
+		if push != False:
+			runShell("(cd %s; git push %s)" % ( self.root, push ))
+		else:	 
+			print("Pushing disabled.")
+
+
+	def run(self,steps):
+		for step in steps:
+			if step != None:
+				step.run(self)
 
 	def head(self):
-		return headSHA1(self.root)
-
+		if self.commit:
+			return self.commit
+		else:
+			return headSHA1(self.root)
 
 	def logTree(self,srctree):
 		# record name and SHA of src tree in dest tree, used for git commit message/auditing:
@@ -239,26 +300,14 @@ class Tree(object):
 				self.merged.append([srctree.name, headSHA1(srctree.origroot)])
 				return
 
-			self.merged.append([srctree.name, headSHA1(srctree.root)])
+			self.merged.append([srctree.name, srctree.head()])
 
-class DeadTree(Tree):
-	def __init__(self,name,root):
-		self.name = name
-		self.root = root
-	def head(self):
-		return "None"
-
-class SvnTree(object):
-	def __init__(self, name, url=None, trylocal=None):
+class SvnTree(Tree):
+	def __init__(self, name, url=None):
 		self.name = name
 		self.url = url
-		self.trylocal = trylocal
-		if self.trylocal and os.path.exists(self.trylocal):
-			base = os.path.basename(self.trylocal)
-			self.root = trylocal
-		else:
-			base = home+"svn/source-trees"
-			self.root = "%s/%s" % (base, self.name)
+		base = home+"svn/source-trees"
+		self.root = "%s/%s" % (base, self.name)
 		if not os.path.exists(base):
 			os.makedirs(base)
 		if os.path.exists(self.root):
@@ -266,65 +315,20 @@ class SvnTree(object):
 		else:
 			runShell("(cd %s; svn co %s %s)" % (base, self.url, self.name))
 
-class CvsTree(object):
-	def __init__(self, name, url=None, trylocal=None):
+class CvsTree(Tree):
+	def __init__(self, name, url=None, path=None):
 		self.name = name
 		self.url = url
-		self.trylocal = trylocal
-		if self.trylocal and os.path.exists(self.trylocal):
-			base = os.path.basename(self.trylocal)
-			self.root = trylocal
-		else:
-			base = home+"cvs/source-trees"
-			self.root = "%s/%s" % (base, self.name)
+		if path is None:
+			path = self.name
+		base = home+"cvs/source-trees"
+		self.root = "%s/%s" % (base, path)
 		if not os.path.exists(base):
 			os.makedirs(base)
 		if os.path.exists(self.root):
 			runShell("(cd %s; cvs update -dP)" % self.root)
 		else:
-			runShell("(cd %s; cvs -d %s co %s)" % (base, self.url, self.name))
-
-class UnifiedTree(Tree):
-	def __init__(self,root,steps):
-		self.steps = steps
-		self.root = root
-		self.name = None
-		self.merged = []
-
-	def run(self):
-		for step in self.steps:
-			step.run(self)
-
-	def gitCommit(self,message="",push=False):
-		runShell("( cd %s; git add . )" % self.root )
-		cmd = "( cd %s; [ -n \"$(git status --porcelain)\" ] && git commit -a -F - << EOF || exit 0\n" % self.root
-		if message != "":
-			cmd += "%s\n\n" % message
-		cmd += "merged: \n\n"
-		for name, sha1 in self.merged:
-			if sha1 != None:
-				cmd += "  %s: %s\n" % ( name, sha1 )
-		cmd += "EOF\n"
-		cmd += ")\n"
-		print "running: %s" % cmd
-		# we use os.system because this multi-line command breaks runShell() - really, breaks commands.getstatusoutput().
-		retval = os.system(cmd)
-		if retval != 0:
-			print "Commit failed."
-			sys.exit(1)
-		if push != False:
-			runShell("(cd %s; git push %s)" % ( self.root, push ))
-
-class VarLocTree(Tree):
-	# This class is for use with overlays where the ebuilds are not stored at the root of the tree.
-	# It allows self.root to be modified later and still remember original root location
-
-	def __init__(self,name,branch="master",url=None,pull=False, trylocal=None):
-		Tree.__init__(self, name, branch, url, pull, trylocal)
-		self.origroot = self.root
-
-	def head(self):
-		return headSHA1(self.origroot)
+			runShell("(cd %s; cvs -d %s co %s)" % (base, self.url, path))
 
 class InsertEbuilds(MergeStep):
 
@@ -479,7 +483,8 @@ class GenUseLocalDesc(MergeStep):
 	def run(self,tree):
 		runShell("egencache --update-use-local-desc --portdir=%s" % tree.root, abortOnFail=False)
 
-class GitPrep(MergeStep):
+class GitCheckout(MergeStep):
+
 	def __init__(self,branch):
 		self.branch = branch
 

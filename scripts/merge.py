@@ -7,18 +7,18 @@ if not os.path.exists("/usr/bin/svn"):
 	print("svn binary not found at /usr/bin/svn. Exiting.")
 	sys.exit(1)
 
-gentoo_src = Tree("gentoo", "master", "git://anongit.gentoo.org/repo/gentoo.git", pull=True)
-funtoo_utils = DeadTree("funtoo-utils",os.path.abspath(".."))
-party_overlay = Tree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
-ubuntu_overlay = Tree("ubuntu-overlay", branch, "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
-stable_overlay = Tree("stable-overlay", branch, "git://github.com/matijaskala/stable-overlay.git", pull=True)
-funtoo_original_overlay = Tree("funtoo-overlay", branch, "git://github.com/funtoo/funtoo-overlay.git", pull=True)
+gentoo_src = GitTree("gentoo", "master", "git://anongit.gentoo.org/repo/gentoo.git", pull=True)
+funtoo_utils = Tree("funtoo-utils",os.path.abspath(".."))
+party_overlay = GitTree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
+ubuntu_overlay = GitTree("ubuntu-overlay", branch, "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
+stable_overlay = GitTree("stable-overlay", branch, "git://github.com/matijaskala/stable-overlay.git", pull=True)
+funtoo_original_overlay = GitTree("funtoo-overlay", branch, "git://github.com/funtoo/funtoo-overlay.git", pull=True)
 gnome_overlay = Tree("gnome", "master", "git://anongit.gentoo.org/proj/gnome.git", pull=True)
-elementary_overlay = Tree("elementary", "master", "git://github.com/pimvullers/elementary.git", pull=True)
-sabayon_for_gentoo = Tree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
-sabayon_distro_src = Tree("sabayon-distro", "master", "git://github.com/Sabayon/sabayon-distro.git", pull=True)
-sabayon_tools = Tree("sabayon-tools", "master", "git://github.com/fusion809/sabayon-tools.git", pull=True)
-gamerlay = Tree("gamerlay", "master", "git://anongit.gentoo.org/proj/gamerlay.git", pull=True)
+elementary_overlay = GitTree("elementary", "master", "git://github.com/pimvullers/elementary.git", pull=True)
+sabayon_for_gentoo = GitTree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
+sabayon_distro_src = GitTree("sabayon-distro", "master", "git://github.com/Sabayon/sabayon-distro.git", pull=True)
+sabayon_tools = GitTree("sabayon-tools", "master", "git://github.com/fusion809/sabayon-tools.git", pull=True)
+gamerlay = GitTree("gamerlay", "master", "git://anongit.gentoo.org/proj/gamerlay.git", pull=True)
 
 funtoo_original_packages = [
 	"sys-kernel/debian-sources",
@@ -53,11 +53,11 @@ steps = [
 
 # work tree is a non-git tree in tmpfs for enhanced performance - we do all the heavy lifting there:
 
-work = UnifiedTree(home+"work/merge-%s" % os.path.basename(dest[0]),steps)
-work.run()
+work = GitTree("work", root=home+"work/merge-%s" % os.path.basename(dest[0]))
+work.run(steps)
 
 steps = [
-	GitPrep("funtoo.org"),
+	GitCheckout("funtoo.org"),
 	SyncTree(work)
 ]
 
@@ -73,6 +73,6 @@ for d in dest:
 		runShell("( cd %s; git checkout -b funtoo.org; git rm -f README; git commit -a -m 'initial funtoo.org commit' )" % ( d ) )
 		print("Pushing disabled automatically because repository created from scratch.")
 		push = False
-	prod = UnifiedTree(d,steps)
-	prod.run()
+	prod = GitTree("prod", root=d)
+	prod.run(steps)
 	prod.gitCommit(message="updates by Skala")
