@@ -1,10 +1,11 @@
 #!/usr/bin/python2
 
-import os,sys,types
 import argparse
-import commands
-import shutil
 import glob
+import os
+import shutil
+import subprocess
+import sys
 
 debug = False
 
@@ -17,13 +18,17 @@ def headSHA1(tree):
 	hfile = os.path.join(tree,".git/HEAD")
 	if os.path.exists(hfile):
 		infile = open(hfile,"r")
-		head = infile.readline().split()[1]
+		line = infile.readline()
 		infile.close()
-		hfile2 = os.path.join(tree,".git")
-		hfile2 = os.path.join(hfile2,head)
-		if os.path.exists(hfile2):
-			infile = open(hfile2,"r")
-			head = infile.readline().split()[0]
+		if len(line.split(":")) == 2:
+			head = line.split()[1]
+			hfile2 = os.path.join(tree,".git")
+			hfile2 = os.path.join(hfile2,head)
+			if os.path.exists(hfile2):
+				infile = open(hfile2,"r")
+				head = infile.readline().split()[0]
+		else:
+			head=line.strip()
 	return head
 
 def runShell(string,abortOnFail=True):
@@ -31,7 +36,7 @@ def runShell(string,abortOnFail=True):
 		print string
 	else:
 		print "running: %s" % string
-		out = commands.getstatusoutput(string)
+		out = subprocess.getstatusoutput(string)
 		if out[0] != 0:
 			print "Error executing '%s'" % string
 			print
@@ -39,6 +44,36 @@ def runShell(string,abortOnFail=True):
 			print out[1]
 			if abortOnFail:
 				sys.exit(1)
+			else:
+				return False
+	return True
+
+def run_command(args, *, abort_on_failure=True, **kwargs):
+	if debug:
+		print(args)
+	else:
+		print("running: %r" % args)
+		stdout = kwargs.pop("stdout", subprocess.PIPE)
+		stderr = kwargs.pop("stderr", subprocess.PIPE)
+		try:
+			with subprocess.Popen(args, stdout=stdout, stderr=stderr, **kwargs) as process:
+				status = process.wait()
+				stdout_content = process.stdout.read().decode()
+				stderr_content = process.stderr.read().decode()
+		except OSError as e:
+			status = -1
+			stdout_content = ""
+			stderr_content = e.strerror
+		if status != 0:
+			print("Error executing %r" % args)
+			print()
+			print("stdout: %s" % stdout_content)
+			print("stderr: %s" % stderr_content)
+			if abort_on_failure:
+				sys.exit(1)
+			else:
+				return False
+	return True
 
 class MergeStep(object):
 	pass
@@ -53,8 +88,6 @@ class AutoGlobMask(MergeStep):
 		f = open(os.path.join(tree.root,"profiles/package.mask"), "a")
 		os.chdir(os.path.join(tree.root,self.catpkg))
 		cat = self.catpkg.split("/")[0]
-		f.write("\n# Matija Skala <mskala@gmx.com>")
-		f.write("\n# Automatic global python masks\n")
 		for item in glob.glob(self.glob+".ebuild"):
 			f.write("=%s/%s\n" % (cat,item[:-7]))
 		f.close()
