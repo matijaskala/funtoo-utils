@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import argparse
 import glob
@@ -33,15 +33,15 @@ def headSHA1(tree):
 
 def runShell(string,abortOnFail=True):
 	if debug:
-		print string
+		print(string)
 	else:
-		print "running: %s" % string
+		print("running: %r" % string)
 		out = subprocess.getstatusoutput(string)
 		if out[0] != 0:
-			print "Error executing '%s'" % string
-			print
-			print "output:"
-			print out[1]
+			print("Error executing %r" % string)
+			print()
+			print("output:")
+			print(out[1])
 			if abortOnFail:
 				sys.exit(1)
 			else:
@@ -299,11 +299,11 @@ class GitTree(Tree):
 					cmd += "  %s: %s\n" % ( name, sha1 )
 		cmd += "EOF\n"
 		cmd += ")\n"
-		print "running: %s" % cmd
+		print("running: %s" % cmd)
 		# we use os.system because this multi-line command breaks runShell() - really, breaks commands.getstatusoutput().
 		retval = os.system(cmd)
 		if retval != 0:
-			print "Commit failed."
+			print("Commit failed.")
 			sys.exit(1)
 		if push != False:
 			runShell("(cd %s; git push %s)" % ( self.root, push ))
@@ -407,7 +407,7 @@ class InsertEbuilds(MergeStep):
 			dest_cat_set = set()
 
 		# Our main loop:
-		print "# Merging in ebuilds from %s" % self.srctree.root
+		print( "# Merging in ebuilds from %s" % self.srctree.root )
 		for cat in src_cat_set:
 			catdir = os.path.join(self.srctree.root,cat)
 			if not os.path.isdir(catdir):
