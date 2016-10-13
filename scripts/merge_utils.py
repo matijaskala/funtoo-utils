@@ -134,6 +134,14 @@ class ApplyPatchSeries(MergeStep):
 			else:
 				runShell( "( cd %s; git apply %s/%s )" % ( tree.root, self.path, line[:-1] ))
 
+class RemoveFiles(MergeStep):
+	def __init__(self,globs=[]):
+		self.globs = globs
+	
+	def run(self,tree):
+		for glob in self.globs:
+			cmd = "rm -rf %s/%s" % ( tree.root, glob )
+			runShell(cmd)
 
 class SyncDir(MergeStep):
 	def __init__(self,srcroot,srcdir=None,destdir=None,exclude=[],delete=False):
@@ -157,11 +165,11 @@ class SyncDir(MergeStep):
 				dest = os.path.normpath(tree.root)+"/"
 		if not os.path.exists(dest):
 			os.makedirs(dest)
-		cmd = "rsync -a --exclude /.git --exclude .svn "
+		cmd = "rsync -a --exclude CVS --exclude .svn --exclude /.git --exclude .svn "
 		for e in self.exclude:
 			cmd += "--exclude %s " % e
 		if self.delete:
-			cmd += "--delete "
+			cmd += "--delete --delete-excluded "
 		cmd += "%s %s" % ( src, dest )
 		runShell(cmd)
 
@@ -365,6 +373,42 @@ class CvsTree(Tree):
 
 class InsertEbuilds(MergeStep):
 
+	"""
+	Insert ebuilds in source tre into destination tree.
+
+	select: Ebuilds to copy over.
+		By default, all ebuilds will be selected. This can be modified by setting select to a
+		list of ebuilds to merge (specify by catpkg, as in "x11-apps/foo"). It is also possible
+		to specify "x11-apps/*" to refer to all source ebuilds in a particular category.
+
+	skip: Ebuilds to skip.
+		By default, no ebuilds will be skipped. If you want to skip copying certain ebuilds,
+		you can specify a list of ebuilds to skip. Skipping will remove additional ebuilds from
+		the set of selected ebuilds. Specify ebuilds to skip using catpkg syntax, ie.
+		"x11-apps/foo". It is also possible to specify "x11-apps/*" to skip all ebuilds in
+		a particular category.
+
+	replace: Ebuilds to replace.
+		By default, if an catpkg dir already exists in the destination tree, it will not be overwritten.
+		However, it is possible to change this behavior by setting replace to True, which means that
+		all catpkgs should be overwritten. It is also possible to set replace to a list containing
+		catpkgs that should be overwritten. Wildcards such as "x11-libs/*" will be respected as well.
+
+	merge: Merge source/destination ebuilds. Default = None.
+		If a source catpkg is going to replace a destination catpkg, and this behavior is not desired,
+		you can use merge to tell InsertEbuilds to add the source ebuilds "on top of" the existing
+		ebuilds. The Manifest file will be updated appropriately. Possible values are None (don't
+		do merging), True (if dest catpkg exists, *always* merge new ebuilds on top), or a list containing
+		catpkg atoms, with wildcards like "x11-apps/*" being recognized. Note that if merging is
+		enabled and identical ebuild versions exist, then the version in the source repo will replace
+		the version in the destination repo.
+
+	categories: Categories to process. 
+		categories to process for inserting ebuilds. Defaults to all categories in tree, using
+		profiles/categories and all dirs with "-" in them and "virtuals" as sources.
+	
+	
+	"""
 	def __init__(self,srctree,select="all",skip=None,replace=False,merge=None,categories=None,ebuildloc=None):
 		self.select = select
 		self.skip = skip
@@ -421,12 +465,14 @@ class InsertEbuilds(MergeStep):
 				if not os.path.isdir(pkgdir):
 					# not a valid package dir in source overlay, so skip it
 					continue
-				if type(self.select) == types.ListType and catpkg not in self.select:
-					# we have a list of pkgs to merge, and this isn't on the list, so skip:
-					continue
-				if type(self.skip) == types.ListType and catpkg in self.skip:
-					# we have a list of pkgs to skip, and this catpkg is on the list, so skip:
-					continue
+				if isinstance(self.select, list):
+					if (catall not in self.select) and (catpkg not in self.select):
+						# we have a list of pkgs to merge, and this isn't on the list, so skip:
+						continue
+				if isinstance(self.skip, list):
+					if ((catpkg in self.skip) or (catall in self.skip)):
+						# we have a list of pkgs to skip, and this catpkg is on the list, so skip:
+						continue
 				dest_cat_set.add(cat)
 				tcatdir = os.path.join(desttree.root,cat)
 				tpkgdir = os.path.join(tcatdir,pkg)
