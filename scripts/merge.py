@@ -23,6 +23,7 @@ partylinux_merge_packages = [
 	"dev-util/kdevelop",
 	"dev-util/kdevplatform",
 	"sys-devel/gcc",
+	"sys-libs/glibc",
 ]
 
 steps = [
