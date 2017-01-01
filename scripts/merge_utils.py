@@ -584,7 +584,6 @@ pull = True
 parser = argparse.ArgumentParser(description="merge.py checks out funtoo.org's Gentoo tree, some developers overlays and the funtoo-overlay, and merges them to create Funtoo's unified Portage tree.")
 parser.add_argument("--nopush", action="store_true", help="Prevents the script to push the git repositories")
 parser.add_argument("--branch", default="master", help="The funtoo-overlay branch to use. Default: master.")
-parser.add_argument("destination", nargs="+", help="The destination git repository.")
 
 args = parser.parse_args()
 
@@ -592,11 +591,5 @@ if args.nopush:
 	push = False
 else:
 	push = "origin funtoo.org"
-
-dest = args.destination
-for d in dest:
-	if d[0] != "/":
-		print("%s: Please specify destination git tree with an absolute path." % d)
-		sys.exit(1)
 
 branch = args.branch

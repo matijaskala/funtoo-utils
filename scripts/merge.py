@@ -47,16 +47,16 @@ steps = [
 	GenUseLocalDesc()
 ]
 
-for d in dest:
-	if not os.path.isdir(d):
-		os.makedirs(d)
-	if not os.path.isdir("%s/.git" % d):
-		runShell("( cd %s; git init )" % d )
-		runShell("echo 'created by merge.py' > %s/README" % d )
-		runShell("( cd %s; git add README; git commit -a -m 'initial commit by merge.py' )" % d )
-		runShell("( cd %s; git checkout -b funtoo.org; git rm -f README; git commit -a -m 'initial funtoo.org commit' )" % ( d ) )
-		print("Pushing disabled automatically because repository created from scratch.")
-		push = False
-	prod = GitTree("prod", root=d)
-	prod.run(steps)
-	prod.gitCommit(message="updates by Skala")
+d = home+"git/ports-2013"
+if not os.path.isdir(d):
+	os.makedirs(d)
+if not os.path.isdir("%s/.git" % d):
+	runShell("( cd %s; git init )" % d )
+	runShell("echo 'created by merge.py' > %s/README" % d )
+	runShell("( cd %s; git add README; git commit -a -m 'initial commit by merge.py' )" % d )
+	runShell("( cd %s; git checkout -b funtoo.org; git rm -f README; git commit -a -m 'initial funtoo.org commit' )" % ( d ) )
+	print("Pushing disabled automatically because repository created from scratch.")
+	push = False
+prod = GitTree("prod", root=d)
+prod.run(steps)
+prod.gitCommit(message="updates by Skala")
