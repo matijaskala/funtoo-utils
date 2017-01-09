@@ -59,4 +59,4 @@ if not os.path.isdir("%s/.git" % d):
 	push = False
 prod = GitTree("prod", root=d)
 prod.run(steps)
-prod.gitCommit(message="updates by Skala")
+prod.gitCommit(message="updates by Skala",push=push)
