@@ -14,18 +14,6 @@ sabayon_distro_src = GitTree("sabayon-distro", "master", "git://github.com/Sabay
 sabayon_tools = GitTree("sabayon-tools", "master", "git://github.com/fusion809/sabayon-tools.git", pull=True)
 gamerlay = GitTree("gamerlay", "master", "git://anongit.gentoo.org/proj/gamerlay.git", pull=True)
 
-funtoo_original_packages = [
-	"sys-kernel/debian-sources",
-	"sys-kernel/openvz-rhel6-stable",
-]
-
-partylinux_merge_packages = [
-	"dev-util/kdevelop",
-	"dev-util/kdevplatform",
-	"sys-devel/gcc",
-	"sys-libs/glibc",
-]
-
 steps = [
 	GitCheckout("funtoo.org"),
 	SyncFromTree(gentoo_src,exclude=["metadata/.gitignore", "/metadata/cache/**", "ChangeLog", "dev-util/metro"]),
@@ -34,11 +22,11 @@ steps = [
 	MergeUpdates(party_overlay.root),
 	SyncDir(party_overlay.root,"licenses"),
 	SyncDir(party_overlay.root,"eclass"),
-	InsertEbuilds(party_overlay, select="all", skip=funtoo_original_packages, replace=True, merge=partylinux_merge_packages),
+	InsertEbuilds(party_overlay, select="all", replace=True, merge=["dev-util/kdevelop", "dev-util/kdevplatform", "sys-devel/gcc", "sys-libs/glibc"]),
 	InsertEbuilds(ubuntu_overlay, replace=True),
 	InsertEbuilds(stable_overlay, replace=True),
 	InsertEbuilds(elementary_overlay, select=["dev-libs/properties-cpp", "gnome-base/gnome-desktop", "gnome-base/gsettings-desktop-schemas", "x11-libs/gtk+"], skip=None, replace=True, merge=["gnome-base/gnome-desktop"]),
-	InsertEbuilds(funtoo_original_overlay, select=funtoo_original_packages, skip=None, replace=True),
+	InsertEbuilds(funtoo_original_overlay, select=["sys-kernel/debian-sources", "sys-kernel/openvz-rhel6-stable"], skip=None, replace=True),
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader", "app-admin/authconfig", "dev-libs/libreport", "dev-python/python-meh", "media-video/kazam", "net-misc/fcoe-utils", "net-misc/lldpad", "sys-apps/libhbalinux", "sys-auth/realmd"], replace=True),
         InsertEbuilds(sabayon_tools, select=["media-video/rage"]),
         InsertEbuilds(gamerlay),
