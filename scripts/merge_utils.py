@@ -2,6 +2,7 @@
 
 import argparse
 import glob
+import itertools
 import os
 import shutil
 import subprocess
@@ -547,6 +548,25 @@ class ProfileDepFix(MergeStep):
 				if len(sp) >= 2:
 					prof_path = sp[1]
 					runShell("rm -f %s/profiles/%s/deprecated" % ( tree.root, prof_path ))
+
+class RunSed(MergeStep):
+
+	"""
+	Run sed commands on specified files.
+
+	files: List of files.
+
+	commands: List of commands.
+	"""
+
+	def __init__(self, files, commands):
+		self.files = files
+		self.commands = commands
+
+	def run(self, tree):
+		commands = list(itertools.chain.from_iterable(("-e", command) for command in self.commands))
+		files = [os.path.join(tree.root, file) for file in self.files]
+		run_command(["sed"] + commands + ["-i"] + files)
 
 class GenCache(MergeStep):
 
