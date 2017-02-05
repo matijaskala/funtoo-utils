@@ -4,10 +4,10 @@ from merge_utils import *
 
 gentoo_src = GitTree("gentoo", "master", "git://anongit.gentoo.org/repo/gentoo.git", pull=True)
 funtoo_utils = Tree("funtoo-utils",os.path.abspath(".."))
-party_overlay = GitTree("party-overlay", branch, "git://github.com/matijaskala/party-overlay.git", pull=True)
-ubuntu_overlay = GitTree("ubuntu-overlay", branch, "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
-stable_overlay = GitTree("stable-overlay", branch, "git://github.com/matijaskala/stable-overlay.git", pull=True)
-funtoo_original_overlay = GitTree("funtoo-overlay", branch, "git://github.com/funtoo/funtoo-overlay.git", pull=True)
+party_overlay = GitTree("party-overlay", "master", "git://github.com/matijaskala/party-overlay.git", pull=True)
+ubuntu_overlay = GitTree("ubuntu-overlay", "master", "git://github.com/matijaskala/ubuntu-overlay.git", pull=True)
+stable_overlay = GitTree("stable-overlay", "master", "git://github.com/matijaskala/stable-overlay.git", pull=True)
+funtoo_original_overlay = GitTree("funtoo-overlay", "master", "git://github.com/funtoo/funtoo-overlay.git", pull=True)
 elementary_overlay = GitTree("elementary", "master", "git://github.com/pimvullers/elementary.git", pull=True)
 sabayon_for_gentoo = GitTree("sabayon-for-gentoo", "master", "git://github.com/Sabayon/for-gentoo.git", pull=True)
 sabayon_distro_src = GitTree("sabayon-distro", "master", "git://github.com/Sabayon/sabayon-distro.git", pull=True)
@@ -47,4 +47,4 @@ if not os.path.isdir("%s/.git" % d):
 	push = False
 prod = GitTree("prod", root=d)
 prod.run(steps)
-prod.gitCommit(message="updates by Skala",push=push)
+prod.gitCommit(message="updates by Skala",branch=push)

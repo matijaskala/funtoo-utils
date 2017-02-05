@@ -291,7 +291,7 @@ class GitTree(Tree):
 		if self.commit:
 			runShell("(cd %s; git checkout %s)" % ( self.root, self.commit ))
 
-	def gitCommit(self,message="",push=False):
+	def gitCommit(self,message="",upstream="origin",branch=None):
 		runShell("( cd %s; git add . )" % self.root )
 		cmd = "( cd %s; [ -n \"$(git status --porcelain)\" ] && git commit -a -F - << EOF || exit 0\n" % self.root
 		if message != "":
@@ -314,8 +314,8 @@ class GitTree(Tree):
 		if retval != 0:
 			print("Commit failed.")
 			sys.exit(1)
-		if push != False:
-			runShell("(cd %s; git push %s)" % ( self.root, push ))
+		if branch != None:
+			runShell("(cd %s; git push %s %s)" % ( self.root, upstream, branch ))
 		else:	 
 			print("Pushing disabled.")
 
@@ -573,14 +573,14 @@ class GenCache(MergeStep):
 	"GenCache runs egencache --update to update metadata."
 
 	def run(self,tree):
-		runShell("egencache --update --repo=gentoo --portdir=%s --jobs=4" % tree.root, abortOnFail=False)
+		run_command(["egencache", "--update", "--repo", "gentoo", "--repositories-configuration", "[gentoo]\nlocation = %s" % tree.root, "--jobs", "4"], abort_on_failure=False)
 
 class GenUseLocalDesc(MergeStep):
 
 	"GenUseLocalDesc runs egencache to update use.local.desc"
 
 	def run(self,tree):
-		runShell("egencache --update-use-local-desc --portdir=%s" % tree.root, abortOnFail=False)
+		run_command(["egencache", "--update-use-local-desc", "--repo", "gentoo", "--repositories-configuration", "[gentoo]\nlocation = %s" % tree.root], abort_on_failure=False)
 
 class GitCheckout(MergeStep):
 
@@ -603,13 +603,10 @@ pull = True
 
 parser = argparse.ArgumentParser(description="merge.py checks out funtoo.org's Gentoo tree, some developers overlays and the funtoo-overlay, and merges them to create Funtoo's unified Portage tree.")
 parser.add_argument("--nopush", action="store_true", help="Prevents the script to push the git repositories")
-parser.add_argument("--branch", default="master", help="The funtoo-overlay branch to use. Default: master.")
 
 args = parser.parse_args()
 
 if args.nopush:
-	push = False
+	push = None
 else:
-	push = "origin funtoo.org"
-
-branch = args.branch
+	push = "funtoo.org"
