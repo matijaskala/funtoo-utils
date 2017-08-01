@@ -30,7 +30,6 @@ steps = [
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader", "app-admin/authconfig", "dev-libs/libreport", "media-video/kazam", "net-misc/fcoe-utils", "net-misc/lldpad", "sys-apps/libhbalinux", "sys-auth/realmd"], replace=True),
         InsertEbuilds(sabayon_tools, select=["media-video/rage"]),
         InsertEbuilds(gamerlay),
-	ApplyPatchSeries("%s/partylinux/patches" % party_overlay.root ),
 	GenCache(),
 	GenUseLocalDesc()
 ]
