@@ -14,6 +14,7 @@ sabayon_distro_src = GitTree("sabayon-distro", "master", "git://github.com/Sabay
 sabayon_tools = GitTree("sabayon-tools", "master", "git://github.com/fusion809/sabayon-tools.git", pull=True)
 gamerlay = GitTree("gamerlay", "master", "git://anongit.gentoo.org/proj/gamerlay.git", pull=True)
 unity_gentoo = GitTree("unity-gentoo", "master", "git://github.com/shiznix/unity-gentoo.git", pull=True)
+gnome_next = GitTree("gnome-next", "master", "git://github.com/Heather/gentoo-gnome.git", pull=True)
 
 steps = [
 	GitCheckout("funtoo.org"),
@@ -31,7 +32,8 @@ steps = [
 	InsertEbuilds(sabayon_for_gentoo, select=["app-admin/equo", "app-admin/matter", "sys-apps/entropy", "sys-apps/entropy-server", "sys-apps/entropy-client-services","app-admin/rigo", "sys-apps/rigo-daemon", "sys-apps/magneto-core", "x11-misc/magneto-gtk", "x11-misc/magneto-gtk3", "kde-misc/magneto-kde", "app-misc/magneto-loader", "app-admin/authconfig", "dev-libs/libreport", "media-video/kazam", "net-misc/fcoe-utils", "net-misc/lldpad", "sys-apps/libhbalinux", "sys-auth/realmd"], replace=True),
         InsertEbuilds(sabayon_tools, select=["media-video/rage"]),
         InsertEbuilds(gamerlay, skip=["games-action/a7xpg", "games-action/area2048", "games-action/gradleunison", "games-action/gunroar", "games-action/gunroarhi", "games-action/overgrowth", "games-action/parsec47", "games-action/projectl", "games-action/reflectball", "games-action/tatan", "games-action/titanion", "games-action/torustrooper", "games-action/torustrooperpure", "games-action/tumikifighters", "games-action/valandrick", "games-action/zlock", "games-arcade/atomorun2008", "games-arcade/dustforce", "games-arcade/edge", "games-arcade/rush", "games-arcade/shatter", "games-arcade/tokitori", "games-puzzle/closure", "games-rpg/torchlight"]),
-	InsertEbuilds(unity_gentoo, select=["dev-libs/libzeitgeist", "gnome-extra/zeitgeist"]),
+	InsertEbuilds(unity_gentoo, select=["dev-libs/libzeitgeist"]),
+	InsertEbuilds(gnome_next, select=["gnome-extra/zeitgeist"]),
 	GenCache(),
 	GenUseLocalDesc()
 ]
