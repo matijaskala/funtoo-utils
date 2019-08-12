@@ -15,6 +15,7 @@ sabayon_tools = GitTree("sabayon-tools", "master", "git://github.com/fusion809/s
 gamerlay = GitTree("gamerlay", "master", "git://anongit.gentoo.org/proj/gamerlay.git", pull=True)
 unity_gentoo = GitTree("unity-gentoo", "master", "git://github.com/shiznix/unity-gentoo.git", pull=True)
 gnome_next = GitTree("gnome-next", "master", "git://github.com/Heather/gentoo-gnome.git", pull=True)
+flatpak_overlay = GitTree("flatpak-overlay", "master", "git://github.com/fosero/flatpak-overlay", pull=True)
 
 steps = [
 	GitCheckout("funtoo.org"),
@@ -34,6 +35,7 @@ steps = [
         InsertEbuilds(gamerlay, skip=["games-action/a7xpg", "games-action/area2048", "games-action/gradleunison", "games-action/gunroar", "games-action/gunroarhi", "games-action/overgrowth", "games-action/parsec47", "games-action/projectl", "games-action/reflectball", "games-action/tatan", "games-action/titanion", "games-action/torustrooper", "games-action/torustrooperpure", "games-action/tumikifighters", "games-action/valandrick", "games-action/zlock", "games-arcade/atomorun2008", "games-arcade/dustforce", "games-arcade/edge", "games-arcade/rush", "games-arcade/shatter", "games-arcade/tokitori", "games-puzzle/closure", "games-rpg/torchlight"]),
 	InsertEbuilds(unity_gentoo, select=["dev-libs/libzeitgeist"]),
 	InsertEbuilds(gnome_next, select=["gnome-extra/zeitgeist"]),
+	InsertEbuilds(flatpak_overlay, replace=True),
 	GenCache(),
 	GenUseLocalDesc()
 ]
